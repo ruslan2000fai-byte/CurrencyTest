@@ -79,7 +79,5 @@ public class TokenService : ITokenService
     }
 
     public async Task<bool> IsTokenRevokedAsync(string jti, CancellationToken cancellationToken = default)
-        => await _dbContext.RevokedTokens.AnyAsync(rt =>
-            rt.Jti == jti &&
-            (rt.ExpiresAt == null || rt.ExpiresAt > DateTime.UtcNow), cancellationToken);
+        => await _dbContext.RevokedTokens.AnyAsync(rt => rt.Jti == jti, cancellationToken);
 }
