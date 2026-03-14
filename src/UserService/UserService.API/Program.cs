@@ -16,8 +16,12 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+// CQRS: разделение контекстов для чтения и записи
+builder.Services.AddDbContext<AppReadDbContext>(options =>
+    options.UseNpgsql(builder.Configuration.GetConnectionString("ReadConnection")));
+
+builder.Services.AddDbContext<AppWriteDbContext>(options =>
+    options.UseNpgsql(builder.Configuration.GetConnectionString("WriteConnection")));
 
 builder.Services.AddMediatR(cfg =>
     cfg.RegisterServicesFromAssembly(typeof(RegisterUserCommand).Assembly));

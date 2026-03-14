@@ -7,26 +7,28 @@ namespace UserService.Infrastructure.Repositories;
 
 public class UserRepository : IUserRepository
 {
-    private readonly AppDbContext _context;
+    private readonly AppReadDbContext _readContext;
+    private readonly AppWriteDbContext _writeContext;
 
-    public UserRepository(AppDbContext context)
+    public UserRepository(AppReadDbContext readContext, AppWriteDbContext writeContext)
     {
-        _context = context;
+        _readContext = readContext;
+        _writeContext = writeContext;
     }
 
     public async Task<User?> GetByIdAsync(int id, CancellationToken ct = default)
-        => await _context.Users.FindAsync(new object[] { id }, ct);
+        => await _readContext.Users.FindAsync(new object[] { id }, ct);
 
     public async Task<User?> GetByNameAsync(string name, CancellationToken ct = default)
-        => await _context.Users.FirstOrDefaultAsync(u => u.Name == name, ct);
+        => await _readContext.Users.FirstOrDefaultAsync(u => u.Name == name, ct);
 
     public async Task<User> CreateAsync(User user, CancellationToken ct = default)
     {
-        _context.Users.Add(user);
-        await _context.SaveChangesAsync(ct);
+        _writeContext.Users.Add(user);
+        await _writeContext.SaveChangesAsync(ct);
         return user;
     }
 
     public async Task<bool> ExistsByNameAsync(string name, CancellationToken ct = default)
-        => await _context.Users.AnyAsync(u => u.Name == name, ct);
+        => await _readContext.Users.AnyAsync(u => u.Name == name, ct);
 }

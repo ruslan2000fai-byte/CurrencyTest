@@ -50,7 +50,6 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                 if (jti == null)
                     return;
 
-                // Проверяем отзыв только для токенов с валидным сроком жизни
                 var isRevoked = await dbContext.RevokedTokens.AnyAsync(rt => rt.Jti == jti);
 
                 if (isRevoked)

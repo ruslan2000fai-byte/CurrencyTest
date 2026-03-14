@@ -13,9 +13,9 @@ namespace UserService.Infrastructure.Services;
 public class TokenService : ITokenService
 {
     private readonly IConfiguration _configuration;
-    private readonly AppDbContext _dbContext;
+    private readonly AppWriteDbContext _dbContext;
 
-    public TokenService(IConfiguration configuration, AppDbContext dbContext)
+    public TokenService(IConfiguration configuration, AppWriteDbContext dbContext)
     {
         _configuration = configuration;
         _dbContext = dbContext;
