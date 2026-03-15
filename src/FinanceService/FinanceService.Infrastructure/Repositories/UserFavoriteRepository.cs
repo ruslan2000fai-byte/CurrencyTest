@@ -7,33 +7,35 @@ namespace FinanceService.Infrastructure.Repositories;
 
 public class UserFavoriteRepository : IUserFavoriteRepository
 {
-    private readonly AppDbContext _context;
+    private readonly AppReadDbContext _readContext;
+    private readonly AppWriteDbContext _writeContext;
 
-    public UserFavoriteRepository(AppDbContext context)
+    public UserFavoriteRepository(AppReadDbContext readContext, AppWriteDbContext writeContext)
     {
-        _context = context;
+        _readContext = readContext;
+        _writeContext = writeContext;
     }
 
     public async Task AddAsync(UserFavorite favorite, CancellationToken ct = default)
     {
-        _context.UserFavorites.Add(favorite);
-        await _context.SaveChangesAsync(ct);
+        _writeContext.UserFavorites.Add(favorite);
+        await _writeContext.SaveChangesAsync(ct);
     }
 
     public async Task<bool> RemoveAsync(int userId, int currencyId, CancellationToken ct = default)
     {
-        var favorite = await _context.UserFavorites
+        var favorite = await _readContext.UserFavorites
             .FirstOrDefaultAsync(f => f.UserId == userId && f.CurrencyId == currencyId, ct);
 
         if (favorite == null)
             return false;
 
-        _context.UserFavorites.Remove(favorite);
-        await _context.SaveChangesAsync(ct);
+        _writeContext.UserFavorites.Remove(favorite);
+        await _writeContext.SaveChangesAsync(ct);
         return true;
     }
 
     public async Task<bool> ExistsAsync(int userId, int currencyId, CancellationToken ct = default)
-        => await _context.UserFavorites
+        => await _readContext.UserFavorites
             .AnyAsync(f => f.UserId == userId && f.CurrencyId == currencyId, ct);
 }

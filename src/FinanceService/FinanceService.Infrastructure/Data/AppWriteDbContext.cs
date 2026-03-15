@@ -3,9 +3,9 @@ using Microsoft.EntityFrameworkCore;
 
 namespace FinanceService.Infrastructure.Data;
 
-public class AppDbContext : DbContext
+public class AppWriteDbContext : DbContext
 {
-    public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
+    public AppWriteDbContext(DbContextOptions<AppWriteDbContext> options) : base(options) { }
 
     public DbSet<Currency> Currencies => Set<Currency>();
     public DbSet<UserFavorite> UserFavorites => Set<UserFavorite>();
@@ -32,15 +32,6 @@ public class AppDbContext : DbContext
             b.Property(f => f.UserId).HasColumnName("user_id");
             b.Property(f => f.CurrencyId).HasColumnName("currency_id");
             b.HasOne(f => f.Currency).WithMany().HasForeignKey(f => f.CurrencyId);
-        });
-
-        modelBuilder.Entity<RevokedToken>(b =>
-        {
-            b.ToTable("revoked_tokens");
-            b.HasKey(rt => rt.Jti);
-            b.Property(rt => rt.Jti).HasColumnName("jti").HasMaxLength(64);
-            b.Property(rt => rt.RevokedAt).HasColumnName("revoked_at");
-            b.Property(rt => rt.ExpiresAt).HasColumnName("expires_at");
         });
     }
 }

@@ -14,8 +14,12 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+// CQRS: разделение контекстов для чтения и записи
+builder.Services.AddDbContext<AppReadDbContext>(options =>
+    options.UseNpgsql(builder.Configuration.GetConnectionString("ReadConnection")));
+
+builder.Services.AddDbContext<AppWriteDbContext>(options =>
+    options.UseNpgsql(builder.Configuration.GetConnectionString("WriteConnection")));
 
 builder.Services.AddMediatR(cfg =>
     cfg.RegisterServicesFromAssembly(typeof(GetUserCurrenciesQuery).Assembly));
@@ -44,7 +48,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         {
             OnTokenValidated = async context =>
             {
-                var dbContext = context.HttpContext.RequestServices.GetRequiredService<AppDbContext>();
+                var dbContext = context.HttpContext.RequestServices.GetRequiredService<AppWriteDbContext>();
                 var jti = context.Principal?.FindFirst(JwtRegisteredClaimNames.Jti)?.Value;
 
                 if (jti == null)
