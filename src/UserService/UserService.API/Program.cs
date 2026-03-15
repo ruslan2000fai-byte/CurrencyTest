@@ -18,13 +18,16 @@ builder.Services.AddSwaggerGen();
 
 // CQRS: разделение контекстов для чтения и записи
 builder.Services.AddDbContext<AppReadDbContext>(options =>
-    options.UseNpgsql(builder.Configuration.GetConnectionString("ReadConnection")));
+	{
+		options.UseNpgsql(builder.Configuration.GetConnectionString("ReadConnection"));
+		options.UseQueryTrackingBehavior(QueryTrackingBehavior.NoTracking);
+	});
 
 builder.Services.AddDbContext<AppWriteDbContext>(options =>
-    options.UseNpgsql(builder.Configuration.GetConnectionString("WriteConnection")));
+	options.UseNpgsql(builder.Configuration.GetConnectionString("WriteConnection")));
 
 builder.Services.AddMediatR(cfg =>
-    cfg.RegisterServicesFromAssembly(typeof(RegisterUserCommand).Assembly));
+	cfg.RegisterServicesFromAssembly(typeof(RegisterUserCommand).Assembly));
 
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<ITokenService, TokenService>();
@@ -34,30 +37,30 @@ var jwtSettings = builder.Configuration.GetSection("JwtSettings");
 var secretKey = jwtSettings["SecretKey"]!;
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-    .AddJwtBearer(options =>
-    {
-        options.MapInboundClaims = false;
-        options.TokenValidationParameters = new TokenValidationParameters
-        {
-            ValidateIssuer = true,
-            ValidateAudience = true,
-            ValidateLifetime = true,
-            ValidateIssuerSigningKey = true,
-            ValidIssuer = jwtSettings["Issuer"],
-            ValidAudience = jwtSettings["Audience"],
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey))
-        };
-        options.Events = new JwtBearerEvents
-        {
-            OnTokenValidated = async context =>
-            {
-                var tokenService = context.HttpContext.RequestServices.GetRequiredService<ITokenService>();
-                var jti = context.Principal?.FindFirst(JwtRegisteredClaimNames.Jti)?.Value;
-                if (jti != null && await tokenService.IsTokenRevokedAsync(jti, context.HttpContext.RequestAborted))
-                    context.Fail("Token has been revoked.");
-            }
-        };
-    });
+	.AddJwtBearer(options =>
+	{
+		options.MapInboundClaims = false;
+		options.TokenValidationParameters = new TokenValidationParameters
+		{
+			ValidateIssuer = true,
+			ValidateAudience = true,
+			ValidateLifetime = true,
+			ValidateIssuerSigningKey = true,
+			ValidIssuer = jwtSettings["Issuer"],
+			ValidAudience = jwtSettings["Audience"],
+			IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey))
+		};
+		options.Events = new JwtBearerEvents
+		{
+			OnTokenValidated = async context =>
+			{
+				var tokenService = context.HttpContext.RequestServices.GetRequiredService<ITokenService>();
+				var jti = context.Principal?.FindFirst(JwtRegisteredClaimNames.Jti)?.Value;
+				if (jti != null && await tokenService.IsTokenRevokedAsync(jti, context.HttpContext.RequestAborted))
+					context.Fail("Token has been revoked.");
+			}
+		};
+	});
 
 builder.Services.AddAuthorization();
 
@@ -73,19 +76,19 @@ app.MapControllers();
 
 app.UseExceptionHandler(errApp =>
 {
-    errApp.Run(async context =>
-    {
-        var exception = context.Features.Get<Microsoft.AspNetCore.Diagnostics.IExceptionHandlerFeature>()?.Error;
-        context.Response.ContentType = "application/json";
-        context.Response.StatusCode = exception switch
-        {
-            InvalidOperationException => StatusCodes.Status409Conflict,
-            UnauthorizedAccessException => StatusCodes.Status401Unauthorized,
-            KeyNotFoundException => StatusCodes.Status404NotFound,
-            _ => StatusCodes.Status500InternalServerError
-        };
-        await context.Response.WriteAsJsonAsync(new { error = exception?.Message });
-    });
+	errApp.Run(async context =>
+	{
+		var exception = context.Features.Get<Microsoft.AspNetCore.Diagnostics.IExceptionHandlerFeature>()?.Error;
+		context.Response.ContentType = "application/json";
+		context.Response.StatusCode = exception switch
+		{
+			InvalidOperationException => StatusCodes.Status409Conflict,
+			UnauthorizedAccessException => StatusCodes.Status401Unauthorized,
+			KeyNotFoundException => StatusCodes.Status404NotFound,
+			_ => StatusCodes.Status500InternalServerError
+		};
+		await context.Response.WriteAsJsonAsync(new { error = exception?.Message });
+	});
 });
 
 app.Run();
