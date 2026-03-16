@@ -23,7 +23,10 @@ services:
       postgres:
         condition: service_healthy
     environment:
-      CONNECTION_STRING: "Host=postgres;Port=5432;Database=currency_db;Username=postgres;Password=postgres"
+      ConnectionStrings__DefaultConnection: "Host=postgres;Port=5432;Database=currency_db;Username=postgres;Password=postgres"
+      MigrationSettings__ScriptsPath: "scripts"
+      MigrationSettings__ScriptFiles__0: "001_Users_RevokedToken.sql"
+      MigrationSettings__ScriptFiles__1: "002_Currency_UserFavorite.sql"
     restart: on-failure
 
   currency_updater:

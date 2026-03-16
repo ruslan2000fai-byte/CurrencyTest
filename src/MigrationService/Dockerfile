@@ -8,4 +8,5 @@ RUN dotnet publish src/MigrationService/MigrationService.csproj -c Release -o /a
 FROM mcr.microsoft.com/dotnet/runtime:8.0
 WORKDIR /app
 COPY --from=build /app .
+COPY --from=build /src/src/MigrationService/scripts ./scripts
 ENTRYPOINT ["dotnet", "MigrationService.dll"]
